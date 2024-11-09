@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geri Sayma Oyunu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #dc2626;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+
+        .start-screen, .game-screen, .end-screen, .score-screen {
+            text-align: center;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        button {
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #b91c1c;
+            transform: scale(1.05);
+        }
+
+        .secondary-button {
+            background-color: #6b7280;
+        }
+
+        .secondary-button:hover {
+            background-color: #4b5563;
+        }
+
+        .home-button {
+            background-color: #1d4ed8;
+            margin: 20px 0;
+        }
+
+        .home-button:hover {
+            background-color: #1e40af;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .score-info {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .correct {
+            background-color: #22c55e !important;
+        }
+
+        .correct:hover {
+            background-color: #16a34a !important;
+        }
+
+        .wrong {
+            background-color: #991b1b !important;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .score-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        .score-table th, .score-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+        }
+
+        .score-table th {
+            background-color: #f3f4f6;
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .score-table tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="startScreen" class="start-screen">
+            <h1>Geri Sayma Oyunu</h1>
+            <h2 style="color: #dc2626;">Kaçar kaçar saymak istersin?</h2>
+            <div class="button-grid">
+                <button onclick="startGame(1)">1'er</button>
+                <button onclick="startGame(2)">2'şer</button>
+                <button onclick="startGame(3)">3'er</button>
+                <button onclick="startGame(4)">4'er</button>
+                <button onclick="startGame(5)">5'er</button>
+                <button onclick="startGame(10)">10'ar</button>
+            </div>
+            <button onclick="showScoreTable()" class="secondary-button">Skor Tablosu</button>
+        </div>
+
+        <div id="gameScreen" class="game-screen hidden">
+            <h1 id="gameTitle">Geri Sayma Oyunu</h1>
+            <div class="game-info">
+                <span>Şimdiki Sayı: <span id="currentNumber">100</span></span>
+                <span>Süre: <span id="timeLeft">15</span></span>
+            </div>
+            <div class="score-info">
+                Puan: <span id="currentScore">0</span>
+            </div>
+            <div class="options-grid" id="options"></div>
+            <button onclick="returnToHome()" class="home-button">Ana Ekrana Dön</button>
+        </div>
+
+        <div id="endScreen" class="end-screen hidden">
+            <h1 id="endTitle">Geri Sayma Oyunu</h1>
+            <h2 id="endMessage" style="color: #dc2626; margin-bottom: 20px;"></h2>
+            <div class="score-info">
+                Son Puan: <span id="finalScore">0</span>
+            </div>
+            <button onclick="restartGame()">Tekrar Oyna</button>
+            <button onclick="returnToHome()" class="home-button">Ana Ekrana Dön</button>
+        </div>
+
+        <div id="scoreScreen" class="score-screen hidden">
+            <h1>Skor Tablosu</h1>
+            <table class="score-table">
+                <thead>
+                    <tr>
+                        <th>Seviye</th>
+                        <th>En Yüksek Puan</th>
+                        <th>Tarih</th>
+                    </tr>
+                </thead>
+                <tbody id="scoreTableBody">
+                </tbody>
+            </table>
+            <button onclick="returnToHome()" class="home-button">Ana Ekrana Dön</button>
+        </div>
+    </div>
+
+    <script>
+        let currentNumber = 100;
+        let step = 2;
+        let timeLeft = 15;
+        let timer;
+        let isGameActive = false;
+        let currentScore = 0;
+
+        // Skor tablosu için yardımcı fonksiyonlar
+        function getStepText(step) {
+            const numberMap = {
+                1: 'Birer',
+                2: 'İkişer',
+                3: 'Üçer',
+                4: 'Dörder',
+                5: 'Beşer',
+                10: 'Onar'
+            };
+            return `${numberMap[step]} Geri Sayma`;
+        }
+
+        function updateHighScore(step, score) {
+            const scores = JSON.parse(localStorage.getItem('scores') || '{}');
+            const stepScores = scores[step] || [];
+            
+            stepScores.push({
+                score: score,
+                date: new Date().toLocaleDateString('tr-TR')
+            });
+            
+            // Son 5 en yüksek skoru tut
+            stepScores.sort((a, b) => b.score - a.score);
+            scores[step] = stepScores.slice(0, 5);
+            
+            localStorage.setItem('scores', JSON.stringify(scores));
+        }
+
+        function showScoreTable() {
+            const scores = JSON.parse(localStorage.getItem('scores') || '{}');
+            const tableBody = document.getElementById('scoreTableBody');
+            tableBody.innerHTML = '';
+
+            [1, 2, 3, 4, 5, 10].forEach(step => {
+                const stepScores = scores[step] || [];
+                if (stepScores.length > 0) {
+                    const highestScore = stepScores[0];
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${getStepText(step)}</td>
+                        <td>${highestScore.score}</td>
+                        <td>${highestScore.date}</td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+            });
+
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('scoreScreen').classList.remove('hidden');
+        }
+
+        function returnToHome() {
+            clearInterval(timer);
+            ['gameScreen', 'endScreen', 'scoreScreen'].forEach(screen => {
+                document.getElementById(screen).classList.add('hidden');
+            });
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+
+        function startGame(selectedStep) {
+            step = selectedStep;
+            currentNumber = 100;
+            timeLeft = 15;
+            isGameActive = true;
+            currentScore = 0;
+            
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('currentScore').textContent = currentScore;
+            document.getElementById('gameTitle').textContent = getStepText(step);
+            
+            updateDisplay();
+            startTimer();
+            generateOptions();
+        }
+
+        function calculatePoints(timeLeft) {
+            const basePoints = 10;
+            const timeBonus = timeLeft * 2;
+            const difficultyBonus = step * 2;
+            return basePoints + timeBonus + difficultyBonus;
+        }
+
+        function generateOptions() {
+            const correct = currentNumber - step;
+            let options = [correct];
+            
+            while (options.length < 3) {
+                const randomOffset = Math.floor(Math.random() * 10) - 5;
+                const newOption = correct + randomOffset;
+                if (!options.includes(newOption) && newOption >= 0) {
+                    options.push(newOption);
+                }
+            }
+            
+            options.sort(() => Math.random() - 0.5);
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.onclick = () => checkAnswer(option, correct);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selected, correct) {
+            if (!isGameActive) return;
+            
+            const buttons = document.querySelectorAll('#options button');
+            buttons.forEach(button => {
+                const buttonValue = parseInt(button.textContent);
+                if (buttonValue === selected) {
+                    if (selected === correct) {
+                        button.classList.add('correct');
+                        const points = calculatePoints(timeLeft);
+                        currentScore += points;
+                        document.getElementById('currentScore').textContent = currentScore;
+                    } else {
+                        button.classList.add('wrong');
+                    }
+                }
+            });
+
+            if (selected === correct) {
+                setTimeout(() => {
+                    if (correct <= 0) {
+                        endGame(true);
+                    } else {
+                        currentNumber = correct;
+                        updateDisplay();
+                        generateOptions();
+                        timeLeft = 15;
+                    }
+                }, 1000);
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('currentNumber').textContent = currentNumber;
+            document.getElementById('timeLeft').textContent = timeLeft;
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                
+                if (timeLeft <= 0) {
+                    endGame(false);
+                }
+            }, 1000);
+        }
+
+        function endGame(isWin) {
+            isGameActive = false;
+            clearInterval(timer);
+            
+            updateHighScore(step, currentScore);
+            
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('endScreen').classList.remove('hidden');
+            document.getElementById('finalScore').textContent = currentScore;
+            document.getElementById('endTitle').textContent = getStepText(step);
+            
+            const endMessage = document.getElementById('endMessage');
+            endMessage.textContent = isWin 
+                ? "Tebrikler! Oyunu başarıyla tamamladın!" 
+                : "Süre doldu! Tekrar dene!";
+        }
+
+        function restartGame() {
+            startGame(step);
+        }
+    </script>
+</body>
+</html>
